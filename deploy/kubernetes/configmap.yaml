@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cloudtask-config
+  namespace: cloudtask
+data:
+  ENVIRONMENT: "production"
+  REDIS_URL: "redis://redis:6379/0"
