@@ -11,3 +11,17 @@ class JobCreate(BaseModel):
     payload: dict[str, Any] = Field(default_factory=dict)
     max_attempts: int = Field(default=3, ge=1, le=10)
 
+class JobResponse(BaseModel):
+    id: UUID
+    job_type: str
+    status: str
+    priority: int
+    payload: dict[str, Any]
+    result: dict[str, Any] | None = None
+    error_message: str | None = None
+    attempts: int
+    max_attempts: int
+    created_at: datetime
+    started_at: datetime | None = None
+    completed_at: datetime | None = None
+    model_config = {"from_attributes": True}
