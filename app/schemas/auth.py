@@ -20,3 +20,8 @@ class TokenResponse(BaseModel):
     refresh_token: str
     token_type: str = "bearer"
 
+class UserResponse(BaseModel):
+    id: UUID
+    email: EmailStr
+    full_name: str
+    model_config = {"from_attributes": True}
