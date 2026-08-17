@@ -14,3 +14,9 @@ def hash_password(password: str) -> str:
 def verify_password(plain_password: str, password_hash: str) -> bool:
     return pwd_context.verify(plain_password, password_hash)
 
+def create_token(subject: str, token_type: str, expires_delta: timedelta) -> str:
+    settings = get_settings()
+    now = datetime.now(UTC)
+    payload: dict[str, Any] = {"sub": subject, "type": token_type, "iat": now, "exp": now + expires_delta}
+    return jwt.encode(payload, settings.jwt_secret_key, algorithm=settings.jwt_algorithm)
+
