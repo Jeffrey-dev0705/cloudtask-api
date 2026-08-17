@@ -28,3 +28,12 @@ def create_refresh_token(subject: str) -> str:
     s = get_settings()
     return create_token(subject, "refresh", timedelta(days=s.refresh_token_days))
 
+def decode_token(token: str, expected_type: str = "access") -> dict[str, Any]:
+    s = get_settings()
+    try:
+        payload = jwt.decode(token, s.jwt_secret_key, algorithms=[s.jwt_algorithm])
+    except JWTError as exc:
+        raise ValueError("Invalid token") from exc
+    if payload.get("type") != expected_type:
+        raise ValueError("Invalid token type")
+    return payload
