@@ -24,3 +24,7 @@ def create_access_token(subject: str) -> str:
     s = get_settings()
     return create_token(subject, "access", timedelta(minutes=s.access_token_minutes))
 
+def create_refresh_token(subject: str) -> str:
+    s = get_settings()
+    return create_token(subject, "refresh", timedelta(days=s.refresh_token_days))
+
