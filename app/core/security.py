@@ -20,3 +20,7 @@ def create_token(subject: str, token_type: str, expires_delta: timedelta) -> str
     payload: dict[str, Any] = {"sub": subject, "type": token_type, "iat": now, "exp": now + expires_delta}
     return jwt.encode(payload, settings.jwt_secret_key, algorithm=settings.jwt_algorithm)
 
+def create_access_token(subject: str) -> str:
+    s = get_settings()
+    return create_token(subject, "access", timedelta(minutes=s.access_token_minutes))
+
