@@ -38,3 +38,14 @@ def deliver_webhook(self, delivery_id: str, event: dict):
     finally:
         db.close()
 
+def enqueue_job_event(db, job: Job, event_type: str):
+    hooks = db.query(Webhook).filter(Webhook.organization_id == job.organization_id, Webhook.event_type == event_type, Webhook.active.is_(True)).all()
+    event = {"id": str(uuid.uuid4()), "type": event_type, "created_at": datetime.now(UTC).isoformat(), "data": {"job_id": str(job.id), "status": job.status, "job_type": job.job_type}}
+    delivery_ids=[]
+    for hook in hooks:
+        delivery=WebhookDelivery(webhook_id=hook.id,event_id=event["id"])
+        db.add(delivery); db.flush(); delivery_ids.append(str(delivery.id))
+    db.commit()
+    for delivery_id in delivery_ids:
+        deliver_webhook.delay(delivery_id, event)
+
