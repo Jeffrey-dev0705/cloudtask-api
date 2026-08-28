@@ -34,3 +34,13 @@ def get_current_user(credentials: HTTPAuthorizationCredentials | None = Depends(
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="User unavailable")
     return user
 
+def get_organization_id(x_organization_id: str = Header(alias="X-Organization-ID"), user: User = Depends(get_current_user), db: Session = Depends(get_db)) -> uuid.UUID:
+    try:
+        organization_id = uuid.UUID(x_organization_id)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid X-Organization-ID") from None
+    membership = db.query(OrganizationMember).filter(OrganizationMember.organization_id == organization_id, OrganizationMember.user_id == user.id).first()
+    if not membership:
+        raise HTTPException(status_code=403, detail="Not a member of this organization")
+    return organization_id
+
