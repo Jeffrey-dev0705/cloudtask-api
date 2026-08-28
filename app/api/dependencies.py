@@ -14,3 +14,10 @@ from app.models.user import User
 
 bearer = HTTPBearer(auto_error=False)
 
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
+
