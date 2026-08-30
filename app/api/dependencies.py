@@ -44,3 +44,18 @@ def get_organization_id(x_organization_id: str = Header(alias="X-Organization-ID
         raise HTTPException(status_code=403, detail="Not a member of this organization")
     return organization_id
 
+def require_org_roles(*allowed_roles: str):
+    def dependency(
+        organization_id: uuid.UUID = Depends(get_organization_id),
+        user: User = Depends(get_current_user),
+        db: Session = Depends(get_db),
+    ) -> uuid.UUID:
+        membership = db.query(OrganizationMember).filter(
+            OrganizationMember.organization_id == organization_id,
+            OrganizationMember.user_id == user.id,
+        ).first()
+        if not membership or membership.role not in allowed_roles:
+            raise HTTPException(status_code=403, detail="Insufficient organization role")
+        return organization_id
+    return dependency
+
