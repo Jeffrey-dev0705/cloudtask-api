@@ -3,3 +3,38 @@ kind: Deployment
 metadata:
   name: cloudtask-api
   namespace: cloudtask
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: cloudtask-api
+  template:
+    metadata:
+      labels:
+        app: cloudtask-api
+    spec:
+      containers:
+        - name: api
+          image: ghcr.io/your-user/cloudtask-api:latest
+          ports:
+            - containerPort: 8000
+          envFrom:
+            - configMapRef:
+                name: cloudtask-config
+            - secretRef:
+                name: cloudtask-secrets
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: 8000
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "128Mi"
+            limits:
+              cpu: "500m"
+              memory: "512Mi"
