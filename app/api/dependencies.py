@@ -59,3 +59,16 @@ def require_org_roles(*allowed_roles: str):
         return organization_id
     return dependency
 
+def authenticate_api_key(
+    x_api_key: str = Header(alias="X-API-Key"),
+    db: Session = Depends(get_db),
+) -> ApiKey:
+    digest = hash_api_key(x_api_key)
+    key = db.query(ApiKey).filter(ApiKey.key_hash == digest, ApiKey.active.is_(True)).first()
+    if not key:
+        raise HTTPException(status_code=401, detail="Invalid API key")
+    if key.expires_at and key.expires_at <= datetime.now(UTC):
+        raise HTTPException(status_code=401, detail="Expired API key")
+    key.last_used_at = datetime.now(UTC)
+    db.commit()
+    return key
