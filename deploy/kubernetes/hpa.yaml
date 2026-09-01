@@ -1,2 +1,5 @@
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
+metadata:
+  name: cloudtask-api
+  namespace: cloudtask
