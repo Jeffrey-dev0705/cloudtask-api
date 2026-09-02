@@ -21,3 +21,10 @@ def create_api_key(
     db.add(item); db.commit(); db.refresh(item)
     return ApiKeyCreatedResponse(id=str(item.id), name=item.name, key_prefix=item.key_prefix, secret=raw, expires_at=item.expires_at)
 
+@router.get("", response_model=list[ApiKeyResponse])
+def list_api_keys(
+    db: Session = Depends(get_db),
+    organization_id: uuid.UUID = Depends(require_org_roles("owner", "admin")),
+):
+    return db.query(ApiKey).filter(ApiKey.organization_id == organization_id).order_by(ApiKey.created_at.desc()).all()
+
