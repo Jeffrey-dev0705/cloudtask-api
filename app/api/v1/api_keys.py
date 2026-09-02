@@ -10,3 +10,14 @@ from app.schemas.api_key import ApiKeyCreate, ApiKeyCreatedResponse, ApiKeyRespo
 
 router = APIRouter(prefix="/api-keys", tags=["api-keys"])
 
+@router.post("", response_model=ApiKeyCreatedResponse, status_code=201)
+def create_api_key(
+    payload: ApiKeyCreate,
+    db: Session = Depends(get_db),
+    organization_id: uuid.UUID = Depends(require_org_roles("owner", "admin")),
+):
+    raw, prefix, digest = generate_api_key()
+    item = ApiKey(organization_id=organization_id, name=payload.name, key_prefix=prefix, key_hash=digest, expires_at=payload.expires_at)
+    db.add(item); db.commit(); db.refresh(item)
+    return ApiKeyCreatedResponse(id=str(item.id), name=item.name, key_prefix=item.key_prefix, secret=raw, expires_at=item.expires_at)
+
