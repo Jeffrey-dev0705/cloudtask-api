@@ -28,3 +28,13 @@ def list_api_keys(
 ):
     return db.query(ApiKey).filter(ApiKey.organization_id == organization_id).order_by(ApiKey.created_at.desc()).all()
 
+@router.delete("/{key_id}", status_code=204)
+def revoke_api_key(
+    key_id: uuid.UUID,
+    db: Session = Depends(get_db),
+    organization_id: uuid.UUID = Depends(require_org_roles("owner", "admin")),
+):
+    item = db.query(ApiKey).filter(ApiKey.id == key_id, ApiKey.organization_id == organization_id).first()
+    if not item:
+        raise HTTPException(status_code=404, detail="API key not found")
+    item.active = False; db.commit()
