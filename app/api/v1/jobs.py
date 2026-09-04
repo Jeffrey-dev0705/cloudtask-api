@@ -22,3 +22,10 @@ def create_job(payload: JobCreate, idempotency_key: str | None = Header(default=
     process_job.delay(str(job.id))
     return job
 
+@router.get("", response_model=list[JobResponse])
+def list_jobs(status: str | None = Query(default=None), limit: int = Query(default=50, ge=1, le=100), db: Session = Depends(get_db), organization_id: uuid.UUID = Depends(get_organization_id)):
+    query = db.query(Job).filter(Job.organization_id == organization_id)
+    if status:
+        query = query.filter(Job.status == status)
+    return query.order_by(Job.created_at.desc()).limit(limit).all()
+
