@@ -24,3 +24,11 @@ def login(payload: LoginRequest, db: Session = Depends(get_db)):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials")
     return TokenResponse(access_token=create_access_token(str(user.id)), refresh_token=create_refresh_token(str(user.id)))
 
+@router.post("/refresh", response_model=TokenResponse)
+def refresh(payload: RefreshRequest):
+    try:
+        token_payload = decode_token(payload.refresh_token, "refresh")
+        subject = token_payload["sub"]
+    except (ValueError, KeyError):
+        raise HTTPException(status_code=401, detail="Invalid refresh token") from None
+    return TokenResponse(access_token=create_access_token(subject), refresh_token=create_refresh_token(subject))
