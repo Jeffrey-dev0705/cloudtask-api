@@ -29,3 +29,10 @@ def list_jobs(status: str | None = Query(default=None), limit: int = Query(defau
         query = query.filter(Job.status == status)
     return query.order_by(Job.created_at.desc()).limit(limit).all()
 
+@router.get("/{job_id}", response_model=JobResponse)
+def get_job(job_id: uuid.UUID, db: Session = Depends(get_db), organization_id: uuid.UUID = Depends(get_organization_id)):
+    job = db.query(Job).filter(Job.id == job_id, Job.organization_id == organization_id).first()
+    if not job:
+        raise HTTPException(status_code=404, detail="Job not found")
+    return job
+
