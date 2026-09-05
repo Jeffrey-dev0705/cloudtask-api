@@ -36,3 +36,13 @@ def get_job(job_id: uuid.UUID, db: Session = Depends(get_db), organization_id: u
         raise HTTPException(status_code=404, detail="Job not found")
     return job
 
+@router.post("/{job_id}/retry", response_model=JobResponse)
+def retry_job(job_id: uuid.UUID, db: Session = Depends(get_db), organization_id: uuid.UUID = Depends(get_organization_id)):
+    job = db.query(Job).filter(Job.id == job_id, Job.organization_id == organization_id).first()
+    if not job:
+        raise HTTPException(status_code=404, detail="Job not found")
+    if job.status not in {"failed", "cancelled"}:
+        raise HTTPException(status_code=409, detail="Only failed/cancelled jobs can be retried")
+    job.status = "queued"; job.error_message = None; db.commit(); process_job.delay(str(job.id)); db.refresh(job)
+    return job
+
