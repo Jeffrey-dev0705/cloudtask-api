@@ -46,3 +46,12 @@ def retry_job(job_id: uuid.UUID, db: Session = Depends(get_db), organization_id:
     job.status = "queued"; job.error_message = None; db.commit(); process_job.delay(str(job.id)); db.refresh(job)
     return job
 
+@router.post("/{job_id}/cancel", response_model=JobResponse)
+def cancel_job(job_id: uuid.UUID, db: Session = Depends(get_db), organization_id: uuid.UUID = Depends(get_organization_id)):
+    job = db.query(Job).filter(Job.id == job_id, Job.organization_id == organization_id).first()
+    if not job:
+        raise HTTPException(status_code=404, detail="Job not found")
+    if job.status != "queued":
+        raise HTTPException(status_code=409, detail="Only queued jobs can be cancelled")
+    job.status = "cancelled"; db.commit(); db.refresh(job)
+    return job
