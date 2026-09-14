@@ -18,3 +18,6 @@ def create_organization(payload: OrganizationCreate, db: Session = Depends(get_d
     db.commit(); db.refresh(organization)
     return organization
 
+@router.get("", response_model=list[OrganizationResponse])
+def list_organizations(db: Session = Depends(get_db), user: User = Depends(get_current_user)):
+    return db.query(Organization).join(OrganizationMember, OrganizationMember.organization_id == Organization.id).filter(OrganizationMember.user_id == user.id).all()
