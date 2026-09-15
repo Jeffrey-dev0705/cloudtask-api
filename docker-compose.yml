@@ -40,3 +40,5 @@ services:
       - ./monitoring/grafana/dashboards:/var/lib/grafana/dashboards:ro
     ports: ["3000:3000"]
     depends_on: [prometheus]
+volumes:
+  postgres_data:
