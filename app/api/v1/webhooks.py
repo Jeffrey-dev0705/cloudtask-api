@@ -21,3 +21,10 @@ def create_webhook(
     db.add(item); db.commit(); db.refresh(item)
     return WebhookCreatedResponse(id=str(item.id), url=item.url, event_type=item.event_type, active=item.active, created_at=item.created_at, secret=secret)
 
+@router.get("", response_model=list[WebhookResponse])
+def list_webhooks(
+    db: Session = Depends(get_db),
+    organization_id: uuid.UUID = Depends(require_org_roles("owner", "admin")),
+):
+    return db.query(Webhook).filter(Webhook.organization_id == organization_id).order_by(Webhook.created_at.desc()).all()
+
