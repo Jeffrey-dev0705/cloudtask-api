@@ -3,3 +3,22 @@ kind: Deployment
 metadata:
   name: cloudtask-worker
   namespace: cloudtask
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: cloudtask-worker
+  template:
+    metadata:
+      labels:
+        app: cloudtask-worker
+    spec:
+      containers:
+        - name: worker
+          image: ghcr.io/your-user/cloudtask-api:latest
+          command: ["celery", "-A", "app.workers.celery_app.celery_app", "worker", "--loglevel=INFO"]
+          envFrom:
+            - configMapRef:
+                name: cloudtask-config
+            - secretRef:
+                name: cloudtask-secrets
