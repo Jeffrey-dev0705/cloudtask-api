@@ -31,3 +31,23 @@ async def request_context(request: Request, call_next):
 def health():
     return {"status":"ok"}
 
+@app.get("/ready",tags=["operations"])
+async def ready(response: Response):
+    checks = {"database": False, "redis": False}
+    db = SessionLocal()
+    try:
+        db.execute(text("SELECT 1"))
+        checks["database"] = True
+    except SQLAlchemyError:
+        checks["database"] = False
+    finally:
+        db.close()
+    try:
+        checks["redis"] = bool(await redis_client.ping())
+    except RedisError:
+        checks["redis"] = False
+    if not all(checks.values()):
+        response.status_code = 503
+        return {"status":"not_ready", "checks":checks}
+    return {"status":"ready", "checks":checks}
+
