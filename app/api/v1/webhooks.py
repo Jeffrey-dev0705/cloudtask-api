@@ -39,3 +39,14 @@ def disable_webhook(
         raise HTTPException(status_code=404, detail="Webhook not found")
     item.active = False; db.commit()
 
+@router.get("/{webhook_id}/deliveries")
+def list_deliveries(
+    webhook_id: uuid.UUID,
+    db: Session = Depends(get_db),
+    organization_id: uuid.UUID = Depends(require_org_roles("owner", "admin")),
+):
+    hook = db.query(Webhook).filter(Webhook.id == webhook_id, Webhook.organization_id == organization_id).first()
+    if not hook:
+        raise HTTPException(status_code=404, detail="Webhook not found")
+    rows = db.query(WebhookDelivery).filter(WebhookDelivery.webhook_id == webhook_id).order_by(WebhookDelivery.created_at.desc()).limit(100).all()
+    return [{"id": str(x.id), "event_id": x.event_id, "status": x.status, "status_code": x.status_code, "attempts": x.attempts, "created_at": x.created_at} for x in rows]
