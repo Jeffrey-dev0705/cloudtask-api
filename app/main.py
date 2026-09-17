@@ -27,3 +27,7 @@ async def request_context(request: Request, call_next):
     REQUEST_COUNT.labels(request.method,path,response.status_code).inc(); REQUEST_LATENCY.labels(request.method,path).observe(duration)
     response.headers["X-Request-ID"]=request_id; return response
 
+@app.get("/health",tags=["operations"])
+def health():
+    return {"status":"ok"}
+
