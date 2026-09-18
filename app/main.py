@@ -51,3 +51,8 @@ async def ready(response: Response):
         return {"status":"not_ready", "checks":checks}
     return {"status":"ready", "checks":checks}
 
+@app.get("/metrics",include_in_schema=False)
+def metrics():
+    return Response(generate_latest(),media_type=CONTENT_TYPE_LATEST)
+
+app.include_router(api_router,prefix=settings.api_v1_prefix)
